@@ -165,17 +165,6 @@ function getLocalIPAddress() {
 
 let currentIP = getLocalIPAddress();
 
-const server = app.listen(port, '0.0.0.0', () => {
+app.listen(port, '0.0.0.0', () => {
   console.log(`Server running at http://${currentIP}:${port}`);
-});
-
-// Schedule server restart every 24 hours
-schedule.scheduleJob('0 0 * * *', () => {
-  console.log('Restarting server...');
-  server.close(() => {
-      currentIP = getLocalIPAddress();
-      server.listen(port, () => {
-          console.log(`Server restarted. New IP: ${currentIP}`);
-      });
-  });
 });
