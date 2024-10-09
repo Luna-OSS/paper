@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { formatDistanceToNow } from 'date-fns';
 import { ClipboardDocumentIcon, ArrowTopRightOnSquareIcon, CheckCircleIcon, XMarkIcon } from '@heroicons/react/24/outline';
 
@@ -20,7 +20,7 @@ function App() {
     setPapers(data);
   }
 
-  async function addPaper() {
+  const addPaper = useCallback(async () => {
     const response = await fetch('/api/papers', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -29,7 +29,7 @@ function App() {
     await response.json();
     setNewPaper('');
     fetchPapers();
-  }
+  }, [newPaper]);
 
   const copyPaper = async (paper) => {
     try {
@@ -50,6 +50,36 @@ function App() {
       textareaRef.current.select();
     }
   }, [popupContent]);
+
+  useEffect(() => {
+    const handleCopyShortcut = (event) => {
+      // Detect Command/Control + C
+      if ((event.metaKey || event.ctrlKey) && event.key === 'c') {
+        closePopup(); // Close popup on Command/Control + C
+      }
+    };
+
+    window.addEventListener('keydown', handleCopyShortcut); // Add keydown event listener for detecting copy shortcut
+
+    return () => {
+      window.removeEventListener('keydown', handleCopyShortcut); // Clean up event listener on component unmount
+    };
+  }, [popupContent]);
+
+  useEffect(() => {
+    const handleAddPaperShortcut = (event) => {
+      // Detect Command/Control + Enter
+      if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
+        addPaper(); // Trigger addPaper() on Command/Control + Enter
+      }
+    };
+  
+    window.addEventListener('keydown', handleAddPaperShortcut); // Add keydown event listener for detecting Command/Control + Enter
+  
+    return () => {
+      window.removeEventListener('keydown', handleAddPaperShortcut); // Clean up event listener on component unmount
+    };
+  }, [addPaper]);
 
   function openPaper(id) {
     window.open(`/paper/${id}`, '_blank');
